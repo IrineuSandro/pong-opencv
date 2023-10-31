@@ -134,57 +134,28 @@ int ShowMainMenu() {
     int selectedOption = 0;  // Opção selecionada (0 para single player, 1 para multiplayer, 2 para histórico, 3 para sair)
 
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_DOWN)) {
-            selectedOption = (selectedOption + 1) % 4;
-        } else if (IsKeyPressed(KEY_UP)) {
-            if (selectedOption == 0) {
-                selectedOption = 3;
-            } else {
-                selectedOption--;
-            }
-        }
-
         ClearBackground(Dark_Green);
 
         DrawText("Pong CV", screenWidth / 2 - MeasureText("Pong CV", 40) / 2, 100, 40, WHITE);
 
         // Botões
-        if (selectedOption == 0) {
-            DrawText("Single Player", screenWidth / 2 - MeasureText("Single Player", 20) / 2, 300, 20, LIGHTGRAY);
-            DrawText("Multiplayer", screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, 20, WHITE);
-            DrawText("Game History", screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, 20, WHITE);
-            DrawText("Quit", screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, 20, WHITE);
+        DrawText("Single Player", screenWidth / 2 - MeasureText("Single Player", 20) / 2, 300, 20, WHITE);
+        DrawText("Multiplayer", screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, 20, WHITE);
+        DrawText("Game History", screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, 20, WHITE);
+        DrawText("Quit", screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, 20, WHITE);
 
-            if (IsKeyPressed(KEY_ENTER)) {
+        // Verifique os cliques do mouse
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            Vector2 mousePos = GetMousePosition();
+            if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Single Player", 20) / 2, 300, MeasureText("Single Player", 20), 20})) {
                 return 0;  // Retorne 0 para iniciar o jogo single player
-            }
-        } else if (selectedOption == 1) {
-            DrawText("Single Player", screenWidth / 2 - MeasureText("Single Player", 20) / 2, 300, 20, WHITE);
-            DrawText("Multiplayer", screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, 20, LIGHTGRAY);
-            DrawText("Game History", screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, 20, WHITE);
-            DrawText("Quit", screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, 20, WHITE);
-
-            if (IsKeyPressed(KEY_ENTER)) {
+            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, MeasureText("Multiplayer", 20), 20})) {
                 return 1;  // Retorne 1 para iniciar o jogo multiplayer
-            }
-        } else if (selectedOption == 2) {
-            DrawText("Single Player", screenWidth / 2 - MeasureText("Single Player", 20) / 2, 300, 20, WHITE);
-            DrawText("Multiplayer", screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, 20, WHITE);
-            DrawText("Game History", screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, 20, LIGHTGRAY);
-            DrawText("Quit", screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, 20, WHITE);
-
-            if (IsKeyPressed(KEY_ENTER)) {
+            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, MeasureText("Game History", 20), 20})) {
                 // Carregue o histórico e exiba-o (implemente a funcionalidade)
                 std::string history = LoadGameHistory("game_history.txt");
                 ShowGameHistory(history);
-            }
-        } else if (selectedOption == 3) {
-            DrawText("Single Player", screenWidth / 2 - MeasureText("Single Player", 20) / 2, 300, 20, WHITE);
-            DrawText("Multiplayer", screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, 20, WHITE);
-            DrawText("Game History", screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, 20, WHITE);
-            DrawText("Quit", screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, 20, LIGHTGRAY);
-
-            if (IsKeyPressed(KEY_ENTER)) {
+            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, MeasureText("Quit", 20), 20})) {
                 return 3;  // Retorne 3 para sair do jogo
             }
         }
@@ -197,6 +168,7 @@ int ShowMainMenu() {
 
 // Função principal do jogo Pong (Single Player)
 int PlaySinglePlayerPong() {
+    game_mode = 0;
     std::cout << "Starting the game" << std::endl;
     const int screen_width = 1280;
     const int screen_height = 800;
@@ -258,8 +230,63 @@ int PlaySinglePlayerPong() {
 
 // Função principal do jogo Pong (Multiplayer)
 int PlayMultiplayerPong() {
-    // ... (código do jogo Pong multiplayer)
+    game_mode = 1;
+    std::cout << "Starting the game" << std::endl;
+    const int screen_width = 1280;
+    const int screen_height = 800;
+    InitWindow(screen_width, screen_height, "My Pong Game!");
+    SetTargetFPS(60);
+    ball.radius = 20;
+    ball.x = screen_width / 2;
+    ball.y = screen_height / 2;
+    ball.speed_x = 7;
+    ball.speed_y = 7;
 
+    player1.width = 25;
+    player1.height = 120;
+    player1.x = screen_width - player1.width - 10;
+    player1.y = screen_height / 2 - player1.height / 2;
+    player1.speed = 6;
+
+    player2.height = 120;
+    player2.width = 25;
+    player2.x = 10;
+    player2.y = screen_height / 2 - player2.height / 2;
+    player2.speed = 6;
+
+    while (WindowShouldClose() == false) {
+        BeginDrawing();
+
+        // Updating
+
+        ball.Update();
+        player1.Update();
+        player2.Update();
+
+        // Checking for collisions
+        if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {player1.x, player1.y, player1.width, player1.height})) {
+            ball.speed_x *= -1;
+        }
+
+        if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {player2.x, player2.y, player2.width, player2.height})) {
+            ball.speed_x *= -1;
+        }
+
+        // Drawing
+        ClearBackground(Dark_Green);
+        DrawRectangle(screen_width / 2, 0, screen_width / 2, screen_height, Green);
+        DrawCircle(screen_width / 2, screen_height / 2, 150, Light_Green);
+        DrawLine(screen_width / 2, 0, screen_width / 2, screen_height, WHITE);
+        ball.Draw();
+        player2.Draw();
+        player1.Draw();
+        DrawText(TextFormat("%i", cpu_score), screen_width / 4 - 20, 20, 80, WHITE);
+        DrawText(TextFormat("%i", player_score), 3 * screen_width / 4 - 20, 20, 80, WHITE);
+
+        EndDrawing();
+    }
+
+    CloseWindow();
     return 0;
 }
 
