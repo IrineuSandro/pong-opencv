@@ -18,6 +18,8 @@ int game_mode; // 0 para singleplayer, 1 para multiplayer
 int player_score = 0;
 int cpu_score = 0;
 
+bool game_over = false;
+
 class Ball {
  public:
     float x, y;
@@ -166,9 +168,25 @@ int ShowMainMenu() {
     return 0;
 }
 
+// Função para exibir a tela de resultado
+void ShowResultScreen(const std::string& winner) {
+    while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
+        ClearBackground(Dark_Green);
+
+        DrawText("Game Over", screenWidth / 2 - MeasureText("Game Over", 40) / 2, 100, 40, WHITE);
+        DrawText(TextFormat("%s Venceu!", winner.c_str()), screenWidth / 2 - MeasureText(winner.c_str(), 30) / 2, 200, 30, WHITE);
+        DrawText("Pressione ESC para retornar ao menu", screenWidth / 2 - MeasureText("Press ESC to return to the main menu", 20) / 2, 300, 20, WHITE);
+
+        EndDrawing();
+    }
+
+    game_over = false;
+}
+
 // Função principal do jogo Pong (Single Player)
 int PlaySinglePlayerPong() {
     game_mode = 0;
+    player_score = cpu_score = 0;
     std::cout << "Starting the game" << std::endl;
     const int screen_width = 1280;
     const int screen_height = 800;
@@ -201,6 +219,15 @@ int PlaySinglePlayerPong() {
         player1.Update();
         cpu.Update(ball.y);
 
+        // Verifique se um dos scores passou de 10
+        if (player_score >= 10) {
+            game_over = true;
+            ShowResultScreen("Player");
+        } else if (cpu_score >= 10) {
+            game_over = true;
+            ShowResultScreen("CPU");
+        }
+
         // Checking for collisions
         if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {player1.x, player1.y, player1.width, player1.height})) {
             ball.speed_x *= -1;
@@ -224,6 +251,7 @@ int PlaySinglePlayerPong() {
         EndDrawing();
     }
 
+    EndDrawing();
     CloseWindow();
     return 0;
 }
@@ -231,6 +259,7 @@ int PlaySinglePlayerPong() {
 // Função principal do jogo Pong (Multiplayer)
 int PlayMultiplayerPong() {
     game_mode = 1;
+    player_score = cpu_score = 0;
     std::cout << "Starting the game" << std::endl;
     const int screen_width = 1280;
     const int screen_height = 800;
@@ -263,6 +292,15 @@ int PlayMultiplayerPong() {
         player1.Update();
         player2.Update();
 
+        // Verifique se um dos scores passou de 10
+        if (player_score >= 10) {
+            game_over = true;
+            ShowResultScreen("Player 1");
+        } else if (cpu_score >= 10) {
+            game_over = true;
+            ShowResultScreen("Player 2");
+        }
+
         // Checking for collisions
         if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {player1.x, player1.y, player1.width, player1.height})) {
             ball.speed_x *= -1;
@@ -286,6 +324,7 @@ int PlayMultiplayerPong() {
         EndDrawing();
     }
 
+    EndDrawing();
     CloseWindow();
     return 0;
 }
@@ -358,26 +397,24 @@ int opencv() {
 }
 
 int game() {
-    InitWindow(screenWidth, screenHeight, "Pong CV - Main Menu");
-
     while (true) {
+        InitWindow(screenWidth, screenHeight, "Pong CV - Main Menu");
+    
         int selectedOption = ShowMainMenu();
 
         if (selectedOption == 0) {
-            // Inicie o jogo single player quando a opção for selecionada
             CloseWindow();
             PlaySinglePlayerPong();
         } else if (selectedOption == 1) {
-            // Inicie o jogo multiplayer quando a opção for selecionada
             CloseWindow();
             PlayMultiplayerPong();
         } else if (selectedOption == 3) {
-            // Saia do jogo quando a opção for selecionada
             CloseWindow();
             return 0;
         }
     }
 }
+
 
 int main() {
     // Crie duas threads para executar as funções simultaneamente

@@ -33,7 +33,12 @@ int main() {
 
         // Detecte rostos no quadro
         std::vector<cv::Rect> faces;
-        face_cascade.detectMultiScale(gray, faces, 1.3, 5);
+        face_cascade.detectMultiScale(gray, faces,
+        1.3, 2, 0
+        //|CASCADE_FIND_BIGGEST_OBJECT
+        //|CASCADE_DO_ROUGH_SEARCH
+        |cv::CASCADE_SCALE_IMAGE,
+        cv::Size(40, 40) );
 
         // Desenhe retângulos ao redor dos rostos detectados
         for (const auto& face : faces) {
