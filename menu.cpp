@@ -3,6 +3,7 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 #include <fstream>
+#include <string>
 
 // Variáveis globais
 Color Green = Color{38, 185, 154, 255};
@@ -131,10 +132,22 @@ void SaveGameHistory(const std::string& fileName, const std::string& history) {
 }
 
 // Função para exibir o histórico de jogos
-void ShowGameHistory(const std::string& history) {
-    // Implemente a lógica para exibir o histórico na tela
-    // Pode ser uma janela pop-up ou uma nova tela
+void ShowGameHistory(int game_mode) {
+    while (!WindowShouldClose()) {
+        ClearBackground(Dark_Green);
+        DrawText("Histórico de Jogos", screenWidth / 2 - MeasureText("Histórico de Jogos", 30) / 2, 50, 30, WHITE);
+
+        std::string historyFileName = (game_mode == 0) ? "historico_singleplayer.txt" : "historico_multiplayer.txt";
+        std::string history = LoadGameHistory(historyFileName);
+
+        DrawText(history.c_str(), 100, 100, 20, WHITE);
+        
+        DrawText("Pressione ESC para voltar ao menu", screenWidth / 2 - MeasureText("Pressione ESC para voltar ao menu", 20) / 2, screenHeight - 100, 20, WHITE);
+    
+        EndDrawing();
+    }
 }
+
 
 // Função para a tela inicial
 int ShowMainMenu() {
@@ -148,8 +161,9 @@ int ShowMainMenu() {
         // Botões
         DrawText("Single Player", screenWidth / 2 - MeasureText("Single Player", 20) / 2, 300, 20, WHITE);
         DrawText("Multiplayer", screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, 20, WHITE);
-        DrawText("Game History", screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, 20, WHITE);
-        DrawText("Quit", screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, 20, WHITE);
+        DrawText("Game History (Singleplayer)", screenWidth / 2 - MeasureText("Game History (Singleplayer)", 20) / 2, 400, 20, WHITE);
+        DrawText("Game History (Multiplayer)", screenWidth / 2 - MeasureText("Game History (Multiplayer)", 20) / 2, 450, 20, WHITE);
+        DrawText("Quit", screenWidth / 2 - MeasureText("Quit", 20) / 2, 500, 20, WHITE);
 
         // Verifique os cliques do mouse
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -158,11 +172,13 @@ int ShowMainMenu() {
                 return 0;  // Retorne 0 para iniciar o jogo single player
             } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Multiplayer", 20) / 2, 350, MeasureText("Multiplayer", 20), 20})) {
                 return 1;  // Retorne 1 para iniciar o jogo multiplayer
-            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Game History", 20) / 2, 400, MeasureText("Game History", 20), 20})) {
-                // Carregue o histórico e exiba-o (implemente a funcionalidade)
-                std::string history = LoadGameHistory("game_history.txt");
-                ShowGameHistory(history);
-            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Quit", 20) / 2, 450, MeasureText("Quit", 20), 20})) {
+            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Game History (Singleplayer)", 20) / 2, 400, MeasureText("Game History (Singleplayer)", 20), 20})) {
+                // Carregue e exiba o histórico de singleplayer
+                ShowGameHistory(0);
+            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Game History (Multiplayer)", 20) / 2, 450, MeasureText("Game History (Multiplayer)", 20), 20})) {
+                // Carregue e exiba o histórico de multiplayer
+                ShowGameHistory(1);
+            } else if (CheckCollisionPointRec(mousePos, {screenWidth / 2 - MeasureText("Quit", 20) / 2, 500, MeasureText("Quit", 20), 20})) {
                 return 3;  // Retorne 3 para sair do jogo
             }
         }
@@ -172,6 +188,7 @@ int ShowMainMenu() {
 
     return 0;
 }
+
 
 // Função para exibir a tela de resultado
 void ShowResultScreen(const std::string& winner) {
@@ -184,6 +201,11 @@ void ShowResultScreen(const std::string& winner) {
 
         EndDrawing();
     }
+
+    std::string historyFileName = (game_mode == 0) ? "historico_singleplayer.txt" : "historico_multiplayer.txt";
+    std::string history = LoadGameHistory(historyFileName);
+    history += winner + " venceu!\n";
+    SaveGameHistory(historyFileName, history);
 
     game_over = false;
 }
@@ -228,9 +250,11 @@ int PlaySinglePlayerPong() {
         if (player_score >= 10) {
             game_over = true;
             ShowResultScreen("Player");
+            break;
         } else if (cpu_score >= 10) {
             game_over = true;
             ShowResultScreen("CPU");
+            break;
         }
 
         // Checking for collisions
@@ -303,9 +327,11 @@ int PlayMultiplayerPong() {
         if (player_score >= 10) {
             game_over = true;
             ShowResultScreen("Player 1");
+            break;
         } else if (cpu_score >= 10) {
             game_over = true;
             ShowResultScreen("Player 2");
+            break;
         }
 
         // Checking for collisions
