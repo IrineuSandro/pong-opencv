@@ -20,6 +20,9 @@ int cpu_score = 0;
 
 bool game_over = false;
 
+Sound collisionSound;
+Sound goalSound;
+
 class Ball {
  public:
     float x, y;
@@ -40,11 +43,13 @@ class Ball {
         // Cpu wins
         if (x + radius >= GetScreenWidth()) {
             cpu_score++;
+            PlaySound(goalSound);
             ResetBall();
         }
 
         if (x - radius <= 0) {
             player_score++;
+            PlaySound(goalSound);
             ResetBall();
         }
     }
@@ -231,10 +236,12 @@ int PlaySinglePlayerPong() {
         // Checking for collisions
         if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {player1.x, player1.y, player1.width, player1.height})) {
             ball.speed_x *= -1;
+            PlaySound(collisionSound);
         }
 
         if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {cpu.x, cpu.y, cpu.width, cpu.height})) {
             ball.speed_x *= -1;
+            PlaySound(collisionSound);
         }
 
         // Drawing
@@ -304,10 +311,12 @@ int PlayMultiplayerPong() {
         // Checking for collisions
         if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {player1.x, player1.y, player1.width, player1.height})) {
             ball.speed_x *= -1;
+            PlaySound(collisionSound);
         }
 
         if (CheckCollisionCircleRec({ball.x, ball.y}, ball.radius, {player2.x, player2.y, player2.width, player2.height})) {
             ball.speed_x *= -1;
+            PlaySound(collisionSound);
         }
 
         // Drawing
@@ -417,6 +426,11 @@ int game() {
 
 
 int main() {
+    InitAudioDevice(); // Inicializa o subsistema de áudio do raylib
+
+    collisionSound = LoadSound("cong.mp3"); // Carrega o som de colisão
+    goalSound = LoadSound("goal.mp3");
+
     // Crie duas threads para executar as funções simultaneamente
     std::thread thread1(opencv);
     std::thread thread2(game);
