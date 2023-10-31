@@ -341,6 +341,8 @@ int opencv() {
             
         }
 
+        cv::flip(frame, frame, 1);
+
         // Exiba o quadro com os rostos detectados
         cv::imshow("Detecção de Rosto", frame);
 
