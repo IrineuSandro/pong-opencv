@@ -119,7 +119,7 @@ std::string LoadGameHistory(const std::string& fileName) {
         file.close();
         return history;
     }
-    return "No game history available.";
+    return "";
 }
 
 // Função para salvar o histórico de jogos
@@ -133,17 +133,40 @@ void SaveGameHistory(const std::string& fileName, const std::string& history) {
 
 // Função para exibir o histórico de jogos
 void ShowGameHistory(int game_mode) {
-    while (!WindowShouldClose()) {
+     while (!WindowShouldClose()) {
         ClearBackground(Dark_Green);
         DrawText("Histórico de Jogos", screenWidth / 2 - MeasureText("Histórico de Jogos", 30) / 2, 50, 30, WHITE);
 
-        std::string historyFileName = (game_mode == 0) ? "historico_singleplayer.txt" : "historico_multiplayer.txt";
-        std::string history = LoadGameHistory(historyFileName);
+        // Recupere o placar do arquivo apropriado
+        std::string scoreFileName = (game_mode == 0) ? "historico_singleplayer.txt" : "historico_multiplayer.txt";
+        std::ifstream scoreFile(scoreFileName);
 
-        DrawText(history.c_str(), 100, 100, 20, WHITE);
-        
+        std::string historico_texto = "";
+        int playerScore, cpuScore;
+        if (scoreFile.is_open()) {
+            while (scoreFile >> playerScore) {
+                if (scoreFile >> cpuScore) {
+                    historico_texto += (game_mode == 0) ? "Player " + std::to_string(playerScore) + " x " + std::to_string(cpuScore) + " CPU\n\n"
+                                                        : "Player1 " + std::to_string(playerScore) + " x " + std::to_string(cpuScore) + " Player2\n\n";
+                } 
+            }
+            scoreFile.close();
+        } 
+        else {
+            historico_texto = "Nenhum histórico disponível";
+        }
+
+        float textWidth = MeasureText(historico_texto.c_str(), 20);
+
+        // Calcule a posição X para centralizar o texto na tela
+        int textX = screenWidth / 2 - static_cast<int>(textWidth) / 2;
+
+        // Use a posição X calculada para desenhar o texto
+        DrawText(historico_texto.c_str(), textX, 100, 20, WHITE);
+
+
         DrawText("Pressione ESC para voltar ao menu", screenWidth / 2 - MeasureText("Pressione ESC para voltar ao menu", 20) / 2, screenHeight - 100, 20, WHITE);
-    
+
         EndDrawing();
     }
 }
@@ -192,19 +215,19 @@ int ShowMainMenu() {
 
 // Função para exibir a tela de resultado
 void ShowResultScreen(const std::string& winner) {
-    while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
+     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
         ClearBackground(Dark_Green);
 
-        DrawText("Game Over", screenWidth / 2 - MeasureText("Game Over", 40) / 2, 100, 40, WHITE);
-        DrawText(TextFormat("%s Venceu!", winner.c_str()), screenWidth / 2 - MeasureText(winner.c_str(), 30) / 2, 200, 30, WHITE);
-        DrawText("Pressione ESC para retornar ao menu", screenWidth / 2 - MeasureText("Press ESC to return to the main menu", 20) / 2, 300, 20, WHITE);
+        DrawText("Game Over", screenWidth / 2 - (int) MeasureText("Game Over", 60) / 2, screenHeight / 2 - 60, 60, WHITE);
+        DrawText(TextFormat("%s Venceu!", winner.c_str()), screenWidth / 2 - (int) MeasureText(winner.c_str(), 40) / 2, screenHeight / 2, 40, WHITE);
+        DrawText("Pressione ESC para retornar ao menu", screenWidth / 2 - (int) MeasureText("Press ESC to return to the main menu", 20) / 2, screenHeight / 2 + 60, 20, WHITE);
 
         EndDrawing();
     }
 
     std::string historyFileName = (game_mode == 0) ? "historico_singleplayer.txt" : "historico_multiplayer.txt";
     std::string history = LoadGameHistory(historyFileName);
-    history += winner + " venceu!\n";
+    history += std::to_string(player_score) + " " + std::to_string(cpu_score);
     SaveGameHistory(historyFileName, history);
 
     game_over = false;
@@ -454,8 +477,8 @@ int game() {
 int main() {
     InitAudioDevice(); // Inicializa o subsistema de áudio do raylib
 
-    collisionSound = LoadSound("cong.mp3"); // Carrega o som de colisão
-    goalSound = LoadSound("goal.mp3");
+    collisionSound = LoadSound("audios/cong.mp3"); // Carrega o som de colisão
+    goalSound = LoadSound("audios/goal.mp3");
 
     // Crie duas threads para executar as funções simultaneamente
     std::thread thread1(opencv);
